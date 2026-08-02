@@ -1,65 +1,55 @@
 # pico-midi-piano
 
-Raspberry Pi Pico と Piano HAT を鍵盤にして、M5Stack Unit MIDI (SAM2695) を音源として鳴らすための最小構成です。
+Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stack Unit MIDI (SAM2695) に UART MIDI を送る Arduino スケッチです。
 
 ## 構成
 
-- **Raspberry Pi Pico**: キー入力の読み取りと MIDI 送信
-- **Piano HAT**: 16 個のタッチキー
-  - 0-12: C 〜 上の C
+- **Raspberry Pi Pico**: タッチ入力の読み取りと MIDI 送信
+- **Piano HAT (CAP1188 x2)**: 16 キー
+  - 0-12: ピアノ鍵盤（C〜上のC）
   - 13: octave down
   - 14: octave up
-  - 15: instrument change
-- **M5Stack Unit MIDI (SAM2695)**: UART MIDI 音源
+  - 15: instrument change（Program Change）
+- **Drum HAT (CAP1188 x1)**: 8 パッド
+  - GM ドラムノート割り当て: `36, 38, 45, 47, 50, 42, 46, 49`
+- **M5Stack Unit MIDI (SAM2695)**: MIDI 音源
+
+## I2C アドレス
+
+- Piano HAT 前半: `0x28`（Pad 0〜7）
+- Piano HAT 後半: `0x2B`（Pad 8〜15）
+- Drum HAT: `0x2C`（Pad 0〜7）
 
 ## 配線
 
-### Piano HAT → Pico
+### HAT群 → Pico（I2C）
 
-Piano HAT は 2 個の CAP1188 (`0x28`, `0x2b`) を I2C で読みます。
+- Pico `GP4` → SDA
+- Pico `GP5` → SCL
+- Pico `3V3` → 各 HAT の `3V3`
+- Pico `GND` → 各 HAT の `GND`
 
-- Pico `GP0` → Piano HAT `SDA`
-- Pico `GP1` → Piano HAT `SCL`
-- Pico `3V3` → Piano HAT `3V3`
-- Pico `GND` → Piano HAT `GND`
+### Pico → M5Stack Unit MIDI（UART）
 
-### Pico → M5Stack Unit MIDI
-
-- Pico `GP12` (UART TX) → Unit MIDI `RX`
+- Pico `GP0` (UART1 TX) → Unit MIDI `RX`
+- Pico `GP1` (UART1 RX) → Unit MIDI `TX`（未使用でも接続可）
 - Pico `VSYS / 5V` → Unit MIDI `5V`
 - Pico `GND` → Unit MIDI `GND`
 
-> Unit MIDI は **Separate mode** にして、UART 31250bps の標準 MIDI を受ける想定です。
+> Unit MIDI は **Separate mode**、ボーレート **31250 bps**（標準 MIDI）を想定しています。
+
+## MIDI 動作
+
+- ピアノ: **Channel 1**（Note On/Off, Program Change）
+- ドラム: **Channel 10**（Note On/Off）
+- タッチに応じて HAT 側 LED を更新
+- ループ遅延は `5ms`（低レイテンシー向け）
 
 ## ファイル
 
-- `/home/runner/work/pico-midi-piano/pico-midi-piano/pico_midi_piano.py`
-  - Piano HAT 入力、MIDI 出力、状態管理
-- `/home/runner/work/pico-midi-piano/pico-midi-piano/main.py`
-  - Pico 上の実行エントリポイント
-- `/home/runner/work/pico-midi-piano/pico-midi-piano/tests/test_pico_midi_piano.py`
-  - PC 上で回せるユニットテスト
+- `/home/runner/work/pico-midi-piano/pico-midi-piano/main.ino`
+  - Piano HAT + Drum HAT の入力処理と MIDI 出力
 
-## Pico での実行
+## 書き込み・実行
 
-1. Pico に MicroPython を書き込みます。
-2. `main.py` と `pico_midi_piano.py` を Pico にコピーします。
-
-例:
-
-```bash
-mpremote cp /home/runner/work/pico-midi-piano/pico-midi-piano/pico_midi_piano.py :
-mpremote cp /home/runner/work/pico-midi-piano/pico-midi-piano/main.py :
-mpremote reset
-```
-
-起動すると、Piano HAT のタッチ状態を 20ms ごとにポーリングし、押したキーに対応する Note On / Note Off を Unit MIDI に送ります。
-
-## ローカルテスト
-
-PC 上ではハードウェア不要のロジックテストだけ実行できます。
-
-```bash
-cd /home/runner/work/pico-midi-piano/pico-midi-piano
-python -m unittest discover -s tests -v
-```
+Arduino IDE / arduino-cli で Raspberry Pi Pico 向けに `main.ino` を書き込んで実行してください。
