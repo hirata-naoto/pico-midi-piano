@@ -13,6 +13,7 @@
 #define REG_MAIN_CONTROL 0x00
 #define REG_TOUCH_STATUS 0x03
 #define REG_MULTITOUCH   0x2A
+#define REG_STANDBY_CONFIG 0x41
 #define REG_LED_LINKING 0x72
 #define REG_LED_POLARITY 0x73
 
@@ -87,6 +88,7 @@ void setup() {
   uint8_t addrs[3] = {PIANO_1_ADDR, PIANO_2_ADDR, DRUM_ADDR};
   for (int i = 0; i < 3; i++) {
     writeCapReg(addrs[i], REG_MULTITOUCH, 0x00);   // 無制限マルチタッチ
+    writeCapReg(addrs[i], REG_STANDBY_CONFIG, 0x30); // スタンバイ設定
     writeCapReg(addrs[i], REG_LED_POLARITY, 0x00);
     writeCapReg(addrs[i], REG_LED_LINKING, 0xFF);  // 全LEDを入力にリンク
   }
