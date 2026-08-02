@@ -3,6 +3,8 @@
 // ピン定義 (Pico)
 #define I2C_SDA 4
 #define I2C_SCL 5
+#define MIDI_UART_TX 0
+#define MIDI_UART_RX 1
 
 // --- I2C アドレス定義 ---
 #define PIANO_1_ADDR 0x28 // Piano HAT 前半 (Pad 0〜7)
@@ -26,6 +28,8 @@ uint8_t current_program = 0;   // ピアノ初期音色 (0: Grand Piano)
 
 // GMドラム（Channel 10）ノート割り当て (8パッド分)
 const uint8_t drum_notes[8] = {36, 38, 45, 47, 50, 42, 46, 49};
+// 36: Bass Drum 1, 38: Acoustic Snare, 45: Low Tom, 47: Low-Mid Tom
+// 50: High Tom, 42: Closed Hi-Hat, 46: Open Hi-Hat, 49: Crash Cymbal 1
 
 // --- MIDI送信ヘルパー ---
 void sendMIDI(uint8_t status, uint8_t data1, uint8_t data2 = 255) {
@@ -74,8 +78,8 @@ uint8_t readCapStatus(uint8_t addr) {
 // --- 初期化 ---
 void setup() {
   // MIDI (31250 bps)
-  Serial1.setTX(0);
-  Serial1.setRX(1);
+  Serial1.setTX(MIDI_UART_TX);
+  Serial1.setRX(MIDI_UART_RX);
   Serial1.begin(31250);
 
   // I2C (400kHz)
