@@ -12,6 +12,15 @@ Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stac
   - 15: instrument change（Program Change）
 - **Drum HAT (CAP1188 x1)**: 8 パッド
   - GM ドラムノート割り当て: `36, 38, 45, 47, 50, 42, 46, 49`
+  - パッドごとの音色
+    - Pad 0: `36` Bass Drum 1
+    - Pad 1: `38` Acoustic Snare
+    - Pad 2: `45` Low Tom
+    - Pad 3: `47` Low-Mid Tom
+    - Pad 4: `50` High Tom
+    - Pad 5: `42` Closed Hi-Hat
+    - Pad 6: `46` Open Hi-Hat
+    - Pad 7: `49` Crash Cymbal 1
 - **M5Stack Unit MIDI (SAM2695)**: MIDI 音源
 
 ## I2C アドレス
