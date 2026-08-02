@@ -42,7 +42,7 @@ Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stac
 
 - ピアノ: **Channel 1**（Note On/Off, Program Change）
 - ドラム: **Channel 10**（Note On/Off）
-- タッチに応じて HAT 側 LED を更新
+- HAT 側 LED は CAP1188 の LED Link mode でタッチ入力に連動
 - ループ遅延は `5ms`（低レイテンシー向け）
 
 ## ファイル

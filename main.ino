@@ -11,7 +11,7 @@
 
 // CAP1188 レジスタ
 #define REG_TOUCH_STATUS 0x03
-#define REG_LED_OUTPUT_CONTROL 0x71
+#define REG_LED_LINKING 0x72
 #define REG_LED_POLARITY 0x73
 
 // グローバル変数
@@ -49,13 +49,6 @@ uint8_t readCapStatus(uint8_t addr) {
   return Wire.available() ? Wire.read() : 0;
 }
 
-void writeCapLed(uint8_t addr, uint8_t mask) {
-  Wire.beginTransmission(addr);
-  Wire.write(REG_LED_OUTPUT_CONTROL);
-  Wire.write(mask);
-  Wire.endTransmission();
-}
-
 // --- 初期化 ---
 void setup() {
   // MIDI (31250 bps)
@@ -69,12 +62,17 @@ void setup() {
   Wire.begin();
   Wire.setClock(400000);
 
-  // 全3基のCAP1188のLED極性を初期化
+  // 全3基のCAP1188のLED設定を初期化
   uint8_t addrs[3] = {PIANO_1_ADDR, PIANO_2_ADDR, DRUM_ADDR};
   for (int i = 0; i < 3; i++) {
     Wire.beginTransmission(addrs[i]);
     Wire.write(REG_LED_POLARITY);
     Wire.write(0x00);
+    Wire.endTransmission();
+
+    Wire.beginTransmission(addrs[i]);
+    Wire.write(REG_LED_LINKING);
+    Wire.write(0xFF); // 全LEDを入力にリンク
     Wire.endTransmission();
   }
 
@@ -96,9 +94,6 @@ void loop() {
   // A. Piano HAT 処理
   // -------------------------------------------------------------
   if (piano_touched != prev_piano_touched) {
-    writeCapLed(PIANO_1_ADDR, piano_touched & 0xFF);
-    writeCapLed(PIANO_2_ADDR, (piano_touched >> 8) & 0xFF);
-
     for (int i = 0; i < 16; i++) {
       uint16_t mask = 1 << i;
       bool is_pressed = (piano_touched & mask) != 0;
@@ -126,8 +121,6 @@ void loop() {
   // B. Drum HAT 処理
   // -------------------------------------------------------------
   if (drum_touched != prev_drum_touched) {
-    writeCapLed(DRUM_ADDR, drum_touched);
-
     for (int i = 0; i < 8; i++) {
       uint8_t mask = 1 << i;
       bool is_pressed = (drum_touched & mask) != 0;
