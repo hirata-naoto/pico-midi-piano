@@ -10,7 +10,9 @@
 #define DRUM_ADDR    0x2C // Drum HAT (Pad 0〜7)
 
 // CAP1188 レジスタ
+#define REG_MAIN_CONTROL 0x00
 #define REG_TOUCH_STATUS 0x03
+#define REG_MULTITOUCH   0x2A
 #define REG_LED_LINKING 0x72
 #define REG_LED_POLARITY 0x73
 
@@ -41,12 +43,31 @@ void drumNoteOn(uint8_t note, uint8_t velocity = 127) { sendMIDI(0x99, note, vel
 void drumNoteOff(uint8_t note) { sendMIDI(0x89, note, 0); }
 
 // --- I2C 読み書き関数 ---
-uint8_t readCapStatus(uint8_t addr) {
+uint8_t readCapReg(uint8_t addr, uint8_t reg) {
   Wire.beginTransmission(addr);
-  Wire.write(REG_TOUCH_STATUS);
+  Wire.write(reg);
   Wire.endTransmission(false);
   Wire.requestFrom(addr, (uint8_t)1);
   return Wire.available() ? Wire.read() : 0;
+}
+
+void writeCapReg(uint8_t addr, uint8_t reg, uint8_t value) {
+  Wire.beginTransmission(addr);
+  Wire.write(reg);
+  Wire.write(value);
+  Wire.endTransmission();
+}
+
+uint8_t readCapStatus(uint8_t addr) {
+  uint8_t touched = readCapReg(addr, REG_TOUCH_STATUS);
+  
+  // タッチ検出があればINTフラグをクリア
+  if (touched) {
+    uint8_t main_ctrl = readCapReg(addr, REG_MAIN_CONTROL);
+    writeCapReg(addr, REG_MAIN_CONTROL, main_ctrl & ~0x01);
+  }
+  
+  return touched;
 }
 
 // --- 初期化 ---
@@ -65,15 +86,9 @@ void setup() {
   // 全3基のCAP1188のLED設定を初期化
   uint8_t addrs[3] = {PIANO_1_ADDR, PIANO_2_ADDR, DRUM_ADDR};
   for (int i = 0; i < 3; i++) {
-    Wire.beginTransmission(addrs[i]);
-    Wire.write(REG_LED_POLARITY);
-    Wire.write(0x00);
-    Wire.endTransmission();
-
-    Wire.beginTransmission(addrs[i]);
-    Wire.write(REG_LED_LINKING);
-    Wire.write(0xFF); // 全LEDを入力にリンク
-    Wire.endTransmission();
+    writeCapReg(addrs[i], REG_MULTITOUCH, 0x00);   // 無制限マルチタッチ
+    writeCapReg(addrs[i], REG_LED_POLARITY, 0x00);
+    writeCapReg(addrs[i], REG_LED_LINKING, 0xFF);  // 全LEDを入力にリンク
   }
 
   delay(100);
