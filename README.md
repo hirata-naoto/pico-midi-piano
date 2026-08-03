@@ -36,8 +36,8 @@ Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stac
 - Pico `5V` → 各 HAT の `5V`
 - Pico `3V3` → 各 HAT の `3V3`
 - Pico `GND` → 各 HAT の `GND`
-- Pico `GP4` → SDA
-- Pico `GP5` → SCL
+- Pico `GP6` → SDA
+- Pico `GP7` → SCL
 
 ### Pico → M5Stack Unit MIDI（UART）
 
