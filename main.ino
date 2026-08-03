@@ -1,8 +1,8 @@
 #include <Wire.h>
 
-// ピン定義 (Pico)
-#define I2C_SDA 4
-#define I2C_SCL 5
+// ピン定義 (Pico / Xiao RP2040)
+#define I2C_SDA 6
+#define I2C_SCL 7
 #define MIDI_UART_TX 0
 #define MIDI_UART_RX 1
 
@@ -49,18 +49,18 @@ void drumNoteOff(uint8_t note) { sendMIDI(0x89, note, 0); }
 
 // --- I2C 読み書き関数 ---
 uint8_t readCapReg(uint8_t addr, uint8_t reg) {
-  Wire.beginTransmission(addr);
-  Wire.write(reg);
-  Wire.endTransmission(false);
-  Wire.requestFrom(addr, (uint8_t)1);
-  return Wire.available() ? Wire.read() : 0;
+  Wire1.beginTransmission(addr);
+  Wire1.write(reg);
+  Wire1.endTransmission(false);
+  Wire1.requestFrom(addr, (uint8_t)1);
+  return Wire1.available() ? Wire1.read() : 0;
 }
 
 void writeCapReg(uint8_t addr, uint8_t reg, uint8_t value) {
-  Wire.beginTransmission(addr);
-  Wire.write(reg);
-  Wire.write(value);
-  Wire.endTransmission();
+  Wire1.beginTransmission(addr);
+  Wire1.write(reg);
+  Wire1.write(value);
+  Wire1.endTransmission();
 }
 
 uint8_t readCapStatus(uint8_t addr) {
@@ -83,10 +83,10 @@ void setup() {
   Serial1.begin(31250);
 
   // I2C (400kHz)
-  Wire.setSDA(I2C_SDA);
-  Wire.setSCL(I2C_SCL);
-  Wire.begin();
-  Wire.setClock(400000);
+  Wire1.setSDA(I2C_SDA);
+  Wire1.setSCL(I2C_SCL);
+  Wire1.begin();
+  Wire1.setClock(400000);
 
   // 全3基のCAP1188のLED設定を初期化
   uint8_t addrs[3] = {PIANO_1_ADDR, PIANO_2_ADDR, DRUM_ADDR};
