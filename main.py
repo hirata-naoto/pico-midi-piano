@@ -11,9 +11,9 @@ except ImportError as exc:  # pragma: no cover - this file is for MicroPython ha
 
 def create_instrument(
     *,
-    i2c_id: int = 0,
-    sda_pin: int = 0,
-    scl_pin: int = 1,
+    i2c_id: int = 1,
+    sda_pin: int = 6,
+    scl_pin: int = 7,
     uart_id: int = 0,
     tx_pin: int = 12,
     uart_baudrate: int = 31250,
