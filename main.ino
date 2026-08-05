@@ -77,6 +77,10 @@ uint8_t readCapStatus(uint8_t addr) {
 
 // --- 初期化 ---
 void setup() {
+  Serial.begin(115200);
+  while (!Serial) { delay(10); }
+  Serial.println("Pico MIDI Piano start");
+
   // MIDI (31250 bps)
   Serial1.setTX(MIDI_UART_TX);
   Serial1.setRX(MIDI_UART_RX);
@@ -99,6 +103,8 @@ void setup() {
 
   delay(100);
   setPianoProgram(current_program);
+  Serial.print("Initial program: ");
+  Serial.println(current_program);
 }
 
 // --- メインループ ---
@@ -122,17 +128,35 @@ void loop() {
 
       if (is_pressed && !was_pressed) {
         if (i < 13) {
-          pianoNoteOn((base_octave * 12) + i);
+          uint8_t note = (base_octave * 12) + i;
+          pianoNoteOn(note);
+          Serial.print("[Piano ON] key=");
+          Serial.print(i);
+          Serial.print(" note=");
+          Serial.println(note);
         } else if (i == 13 && base_octave > 1) {
           base_octave--; // オクターブ DOWN
+          Serial.print("[Octave] ");
+          Serial.println(base_octave);
         } else if (i == 14 && base_octave < 8) {
           base_octave++; // オクターブ UP
+          Serial.print("[Octave] ");
+          Serial.println(base_octave);
         } else if (i == 15) {
           current_program = (current_program + 1) % 128; // 音色変更
           setPianoProgram(current_program);
+          Serial.print("[Program] ");
+          Serial.println(current_program);
         }
       } else if (!is_pressed && was_pressed) {
-        if (i < 13) pianoNoteOff((base_octave * 12) + i);
+        if (i < 13) {
+          uint8_t note = (base_octave * 12) + i;
+          pianoNoteOff(note);
+          Serial.print("[Piano OFF] key=");
+          Serial.print(i);
+          Serial.print(" note=");
+          Serial.println(note);
+        }
       }
     }
     prev_piano_touched = piano_touched;
@@ -149,8 +173,16 @@ void loop() {
 
       if (is_pressed && !was_pressed) {
         drumNoteOn(drum_notes[i]);
+        Serial.print("[Drum ON] pad=");
+        Serial.print(i);
+        Serial.print(" note=");
+        Serial.println(drum_notes[i]);
       } else if (!is_pressed && was_pressed) {
         drumNoteOff(drum_notes[i]);
+        Serial.print("[Drum OFF] pad=");
+        Serial.print(i);
+        Serial.print(" note=");
+        Serial.println(drum_notes[i]);
       }
     }
     prev_drum_touched = drum_touched;
