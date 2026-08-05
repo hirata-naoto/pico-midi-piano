@@ -41,8 +41,8 @@ Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stac
 
 ### Pico / XIAO RP2040 → M5Stack Unit MIDI（UART）
 
-- Pico `GP0` / XIAO `D6` (UART TX) → Unit MIDI `RX`
-- Pico `GP1` / XIAO `D7` (UART RX) → Unit MIDI `TX`（未使用でも接続可）
+- Pico `GP0` (UART1 TX) / XIAO `D6` (UART TX) → Unit MIDI `RX`
+- Pico `GP1` (UART1 RX) / XIAO `D7` (UART RX) → Unit MIDI `TX`（未使用でも接続可）
 - Pico `VSYS / 5V` / XIAO `5V` → Unit MIDI `5V`
 - Pico `GND` / XIAO `GND` → Unit MIDI `GND`
 
