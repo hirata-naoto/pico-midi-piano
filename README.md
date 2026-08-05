@@ -31,20 +31,20 @@ Raspberry Pi Pico に **Piano HAT** と **Drum HAT** を同時接続し、M5Stac
 
 ## 配線
 
-### HAT群 → Pico（I2C）
+### HAT群 → Pico / XIAO RP2040（I2C）
 
-- Pico `5V` → 各 HAT の `5V`
-- Pico `3V3` → 各 HAT の `3V3`
-- Pico `GND` → 各 HAT の `GND`
-- Pico `GP6` → SDA
-- Pico `GP7` → SCL
+- Pico `5V` / XIAO `5V` → 各 HAT の `5V`
+- Pico `3V3` / XIAO `3V3` → 各 HAT の `3V3`
+- Pico `GND` / XIAO `GND` → 各 HAT の `GND`
+- Pico `GP6` / XIAO `D4` → SDA
+- Pico `GP7` / XIAO `D5` → SCL
 
-### Pico → M5Stack Unit MIDI（UART）
+### Pico / XIAO RP2040 → M5Stack Unit MIDI（UART）
 
-- Pico `GP0` (UART1 TX) → Unit MIDI `RX`
-- Pico `GP1` (UART1 RX) → Unit MIDI `TX`（未使用でも接続可）
-- Pico `VSYS / 5V` → Unit MIDI `5V`
-- Pico `GND` → Unit MIDI `GND`
+- Pico `GP0` (UART1 TX) / XIAO `D6` (UART TX) → Unit MIDI `RX`
+- Pico `GP1` (UART1 RX) / XIAO `D7` (UART RX) → Unit MIDI `TX`（未使用でも接続可）
+- Pico `VSYS / 5V` / XIAO `5V` → Unit MIDI `5V`
+- Pico `GND` / XIAO `GND` → Unit MIDI `GND`
 
 > Unit MIDI は **Separate mode**、ボーレート **31250 bps**（標準 MIDI）を想定しています。
 
