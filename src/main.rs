@@ -47,7 +47,7 @@ async fn main(_spawner: Spawner) {
     i2c_cfg.frequency = 400_000;
     let mut i2c: CapI2c = I2c::new_async(p.I2C0, p.PIN_5, p.PIN_4, Irqs, i2c_cfg);
 
-    // MIDI UART (31250bps) — TX=GP0, RX=GP1
+    // MIDI UART (31250bps) — TX=GP0
     let mut uart_cfg = uart::Config::default();
     uart_cfg.baudrate = 31250;
     let mut midi_uart: MidiUart = UartTx::new(
