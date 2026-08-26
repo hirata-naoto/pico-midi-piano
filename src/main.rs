@@ -43,10 +43,10 @@ type CapI2c = I2c<'static, I2C1, i2c::Async>;
 async fn main(_spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
 
-    // I2C (400kHz) — SDA=GP6, SCL=GP7
+    // I2C (400kHz) — SDA=GP4, SCL=GP5
     let mut i2c_cfg = i2c::Config::default();
     i2c_cfg.frequency = 400_000;
-    let mut i2c: CapI2c = I2c::new_async(p.I2C1, p.PIN_7, p.PIN_6, Irqs, i2c_cfg);
+    let mut i2c: CapI2c = I2c::new_async(p.I2C1, p.PIN_5, p.PIN_4, Irqs, i2c_cfg);
 
     // MIDI UART (31250bps) — TX=GP0, RX=GP1
     let mut uart_cfg = uart::Config::default();
