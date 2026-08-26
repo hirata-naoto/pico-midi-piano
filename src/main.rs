@@ -2,10 +2,10 @@
 #![no_main]
 
 use embassy_executor::Spawner;
-use embassy_rp::bind_interrupts;
+use embassy_rp::{bind_interrupts, dma};
 use embassy_rp::i2c::{self, I2c};
-use embassy_rp::peripherals::{I2C1, UART0};
-use embassy_rp::uart::{self, Uart};
+use embassy_rp::peripherals::{I2C0, UART0, DMA_CH0, DMA_CH1};
+use embassy_rp::uart::{self, Uart, UartTx};
 use embassy_time::{Duration, Ticker, Timer};
 use embedded_hal_async::i2c::I2c as _; // write/read/write_read の非同期traitを使うため
 use embedded_io_async::Write;          // uart.write() のため
@@ -30,14 +30,13 @@ const DRUM_NOTES: [u8; 8] = [36, 38, 45, 47, 50, 42, 46, 49];
 // 50: High Tom, 42: Closed Hi-Hat, 46: Open Hi-Hat, 49: Crash Cymbal 1
 
 // 割り込みハンドラのバインド
-// (元コードの Wire1 = I2C1, Serial1 = UART0 に対応)
 bind_interrupts!(struct Irqs {
-    I2C1_IRQ => i2c::InterruptHandler<I2C1>;
+    I2C0_IRQ => i2c::InterruptHandler<I2C0>;
     UART0_IRQ => uart::InterruptHandler<UART0>;
+    DMA_IRQ_0 => dma::InterruptHandler<DMA_CH0>;
 });
-
-type MidiUart = Uart<'static, UART0, uart::Async>;
-type CapI2c = I2c<'static, I2C1, i2c::Async>;
+type MidiUart = UartTx<'static, uart::Async>;
+type CapI2c = I2c<'static, I2C0, i2c::Async>;
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
@@ -46,13 +45,13 @@ async fn main(_spawner: Spawner) {
     // I2C (400kHz) — SDA=GP4, SCL=GP5
     let mut i2c_cfg = i2c::Config::default();
     i2c_cfg.frequency = 400_000;
-    let mut i2c: CapI2c = I2c::new_async(p.I2C1, p.PIN_5, p.PIN_4, Irqs, i2c_cfg);
+    let mut i2c: CapI2c = I2c::new_async(p.I2C0, p.PIN_5, p.PIN_4, Irqs, i2c_cfg);
 
     // MIDI UART (31250bps) — TX=GP0, RX=GP1
     let mut uart_cfg = uart::Config::default();
     uart_cfg.baudrate = 31250;
-    let mut midi_uart: MidiUart = Uart::new(
-        p.UART0, p.PIN_0, p.PIN_1, Irqs, p.DMA_CH0, p.DMA_CH1, uart_cfg,
+    let mut midi_uart: MidiUart = UartTx::new(
+        p.UART0, p.PIN_0, p.DMA_CH0, Irqs, uart_cfg,
     );
 
     // 状態
