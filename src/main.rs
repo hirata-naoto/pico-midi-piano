@@ -75,8 +75,6 @@ async fn main(_spawner: Spawner) {
     defmt::info!("Initial program: {}", current_program);
 
     // 固定周期でポーリングするためのTicker。
-    // Timer::after(処理後に待つ)と違い、処理時間の影響を受けずに
-    // 5ms周期を維持できる(処理が重い時でも周期がズレていかない)。
     let mut ticker = Ticker::every(Duration::from_millis(5));
 
     loop {
@@ -143,7 +141,7 @@ async fn main(_spawner: Spawner) {
             prev_drum_touched = drum_touched;
         }
 
-        ticker.next().await; // 次の5ms周期まで待機(周期は固定、処理時間で伸びない)
+        ticker.next().await; // 次の5ms周期まで待機
     }
 }
 
@@ -188,11 +186,9 @@ async fn write_cap_reg(i2c: &mut CapI2c, addr: u8, reg: u8, value: u8) {
 async fn read_cap_status(i2c: &mut CapI2c, addr: u8) -> u8 {
     let touched = read_cap_reg(i2c, addr, REG_TOUCH_STATUS).await;
 
-    // タッチ検出があればINTフラグをクリア
-    if touched != 0 {
-        let main_ctrl = read_cap_reg(i2c, addr, REG_MAIN_CONTROL).await;
-        write_cap_reg(i2c, addr, REG_MAIN_CONTROL, main_ctrl & !0x01).await;
-    }
+    // 無条件にINTフラグをクリア
+    let main_ctrl = read_cap_reg(i2c, addr, REG_MAIN_CONTROL).await;
+    write_cap_reg(i2c, addr, REG_MAIN_CONTROL, main_ctrl & !0x01).await;
 
     touched
 }
