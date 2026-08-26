@@ -68,6 +68,7 @@ async fn main(_spawner: Spawner) {
         write_cap_reg(&mut i2c, addr, REG_STANDBY_CONFIG, 0x30).await; // スタンバイ設定
         write_cap_reg(&mut i2c, addr, REG_LED_POLARITY, 0x00).await;
         write_cap_reg(&mut i2c, addr, REG_LED_LINKING, 0xFF).await; // 全LEDを入力にリンク
+        setup_sensitivity(&mut i2c, addr).await; 
     }
 
     Timer::after(Duration::from_millis(100)).await;
@@ -191,4 +192,15 @@ async fn read_cap_status(i2c: &mut CapI2c, addr: u8) -> u8 {
     write_cap_reg(i2c, addr, REG_MAIN_CONTROL, main_ctrl & !0x01).await;
 
     touched
+}
+
+async fn setup_sensitivity(i2c: &mut CapI2c, addr: u8) {
+    // チャンネル0〜7のタッチしきい値を下げて高感度化（Pimoroni公式相当）
+    for ch in 0u8..8 {
+        write_cap_reg(i2c, addr, 0x30 + ch, 0x06).await;
+    }
+    // 全体の感度倍率（Sensitivity Control, 0x1F）: 2倍感度
+    write_cap_reg(i2c, addr, 0x1F, 0b0110_0000).await;
+    // サンプリング設定(0x24): 1サンプル/測定, 高速サイクル
+    write_cap_reg(i2c, addr, 0x24, 0x00).await;
 }
