@@ -1,14 +1,14 @@
 #![no_std]
 #![no_main]
 
+use defmt::*;
 use embassy_executor::Spawner;
 use embassy_rp::{bind_interrupts, dma};
 use embassy_rp::i2c::{self, I2c};
-use embassy_rp::peripherals::{I2C0, UART0, DMA_CH0, DMA_CH1};
-use embassy_rp::uart::{self, Uart, UartTx};
+use embassy_rp::peripherals::{I2C0, UART0, DMA_CH0};
+use embassy_rp::uart::{self, UartTx};
 use embassy_time::{Duration, Ticker, Timer};
 use embedded_hal_async::i2c::I2c as _; // write/read/write_read の非同期traitを使うため
-use embedded_io_async::Write;          // uart.write() のため
 use {defmt_rtt as _, panic_probe as _};
 
 // --- I2C アドレス定義 ---
@@ -72,7 +72,7 @@ async fn main(_spawner: Spawner) {
 
     Timer::after(Duration::from_millis(100)).await;
     set_piano_program(&mut midi_uart, current_program).await;
-    defmt::info!("Initial program: {}", current_program);
+    info!("Initial program: {}", current_program);
 
     // 固定周期でポーリングするためのTicker。
     let mut ticker = Ticker::every(Duration::from_millis(5));
@@ -99,22 +99,22 @@ async fn main(_spawner: Spawner) {
                     if i < 13 {
                         let note = base_octave * 12 + i;
                         piano_note_on(&mut midi_uart, note, 127).await;
-                        defmt::info!("[Piano ON] key={} note={}", i, note);
+                        info!("[Piano ON] key={} note={}", i, note);
                     } else if i == 13 && base_octave > 1 {
                         base_octave -= 1; // オクターブ DOWN
-                        defmt::info!("[Octave] {}", base_octave);
+                        info!("[Octave] {}", base_octave);
                     } else if i == 14 && base_octave < 8 {
                         base_octave += 1; // オクターブ UP
-                        defmt::info!("[Octave] {}", base_octave);
+                        info!("[Octave] {}", base_octave);
                     } else if i == 15 {
                         current_program = (current_program + 1) % 128; // 音色変更
                         set_piano_program(&mut midi_uart, current_program).await;
-                        defmt::info!("[Program] {}", current_program);
+                        info!("[Program] {}", current_program);
                     }
                 } else if !is_pressed && was_pressed && i < 13 {
                     let note = base_octave * 12 + i;
                     piano_note_off(&mut midi_uart, note).await;
-                    defmt::info!("[Piano OFF] key={} note={}", i, note);
+                    info!("[Piano OFF] key={} note={}", i, note);
                 }
             }
             prev_piano_touched = piano_touched;
@@ -132,10 +132,10 @@ async fn main(_spawner: Spawner) {
 
                 if is_pressed && !was_pressed {
                     drum_note_on(&mut midi_uart, note, 127).await;
-                    defmt::info!("[Drum ON] pad={} note={}", i, note);
+                    info!("[Drum ON] pad={} note={}", i, note);
                 } else if !is_pressed && was_pressed {
                     drum_note_off(&mut midi_uart, note).await;
-                    defmt::info!("[Drum OFF] pad={} note={}", i, note);
+                    info!("[Drum OFF] pad={} note={}", i, note);
                 }
             }
             prev_drum_touched = drum_touched;
